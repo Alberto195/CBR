@@ -9,6 +9,7 @@ import xlsxwriter
 import glob
 import os
 from openpyxl import Workbook
+import pathlib
 
 
 matplotlib.use("TkAgg")
@@ -464,8 +465,8 @@ def selectItem(a):
         cur_dat[cd-1]=(tree.heading(cd).get('text'))
 def plot(canvas,a,b):
     '''Строит график '''
-    a = list(reversed(a))
-    b = list(reversed(b))
+    # a = list(reversed(a))
+    # b = list(reversed(b))
     a = [a[i] for i in range(len(a)) if a[i] !='']
     b = [b[i] for i in range(len(b)) if b[i] != '']
     try:
@@ -534,12 +535,13 @@ def tree_to_csv():
 def cvs2xl():
     wb = Workbook()
     ws = wb.active
+    p = pathlib.Path('Graphics')
+    p = str(p.absolute())
+    p = p.replace("\\", "/")
     i = 1
-    print(ws.sheet_view)
     with open('csv3.csv', 'r') as f:
         for row in csv.reader(f, dialect='excel', delimiter=';'):
             ws.append(row)
-            print(row[0][0:4])
             if '[\'Часть ' in row[0][0:8]:
                 ws.row_dimensions[i].hidden = True
                 ws.row_dimensions[i].outlineLevel = 1
@@ -553,8 +555,7 @@ def cvs2xl():
                 ws.row_dimensions[i].hidden = True
                 ws.row_dimensions[i].outlineLevel = 4
             i += 1
-
-    wb.save('name.xlsx')
+    wb.save(p[:-16] + 'Graphics/otchet.xlsx')
 
 #############
 root=Tk()
