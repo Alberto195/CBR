@@ -1,0 +1,12 @@
+tkinter
+mysql.connector
+matplotlib
+csv
+openpyxl
+pathlib
+rarfile
+bs4
+dbf
+pymysql
+ssl
+beautifulsoup4
