@@ -145,13 +145,13 @@ def todb(url):
             curs.close()
 
 
-def prepare():
+def prepare(log1, log2):
     """constants"""
     global user
     global password
     cbr = ''
-    user = "root"
-    password = "1234"
+    user = log1[:-1]
+    password = log2[:-1]
     #################
     '''Получение ссылок'''
     quote_page = 'https://www.cbr.ru/banking_sector/otchetnost-kreditnykh-organizaciy/'
@@ -161,20 +161,6 @@ def prepare():
         if '.rar' in link.get('href') and '102-' in link.get('href'):
             cbr = link.get('href')
             break
-
-    '''Подключаем mysql'''
-    mydb = mysql.connector.connect(
-        auth_plugin='mysql_native_password',
-        user=user,
-        password=password,
-    )
-
-    '''Создаём бд'''
-    mycursor = mydb.cursor()
-    all_dbfs = "all_in_one"
-    database = "CREATE DATABASE IF NOT EXISTS " + all_dbfs
-    mycursor.execute(database)
-    """Устанавливаю все значения в бд"""
 
     '''Обрабатываю ссылки в скачивание в бд и таблицы'''
     todb(cbr)
