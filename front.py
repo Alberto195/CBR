@@ -236,7 +236,7 @@ def Front(log1, log2):
         query = "select name_b from " + ds2 + " where regn = " + nb
         cur.execute(query)
         after_fetch = cur.fetchall()
-        if (not after_fetch):
+        if not after_fetch:
             invalid_data.append(ds2)
 
         else:
@@ -268,18 +268,6 @@ def Front(log1, log2):
         global password
         user = log1[:-1]
         password = log2[:-1]
-        mydb = mysql.connector.connect(
-            auth_plugin='mysql_native_password',
-            user=str(user),
-            password=str(password),
-        )
-
-        '''Создаём бд'''
-        mycursor = mydb.cursor()
-        all_dbfs = "all_in_one"
-        database = "CREATE DATABASE IF NOT EXISTS " + all_dbfs
-        mycursor.execute(database)
-        mydb.commit()
 
         config = {'auth_plugin': 'mysql_native_password',
                   'user': user,
@@ -468,7 +456,6 @@ def Front(log1, log2):
     #############
     def tree_to_csv():
         FILENAME = 'csv3.csv'
-        parname = [0]
         with open(FILENAME, "w", newline='') as csv_file:
             write = csv.writer(csv_file, dialect='excel', delimiter=';')
             chld1 = tree.get_children()
@@ -530,7 +517,7 @@ def Front(log1, log2):
         wb.save(p[:-16] + 'Graphics/otchet.xlsx')
 
     def pre():
-        if prepare():
+        if prepare(log1, log2):
             messagebox.showinfo("Нотификация", "База данных обновлена")
         else:
             messagebox.showinfo("Нотификация", "База данных не нуждается в обновлении")
@@ -629,4 +616,3 @@ def Front(log1, log2):
     toolbar.place(x=700, y=250)
     root.mainloop()
 
-    return True
