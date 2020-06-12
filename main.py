@@ -1,5 +1,7 @@
 from tkinter import *
 import pathmagic
+from tkinter import messagebox
+import mysql.connector
 
 with pathmagic.Context():
     from Work.Scripts.front import Front
@@ -8,8 +10,24 @@ with pathmagic.Context():
 def getText():
     log1 = text.get(1.0, END)
     log2 = text2.get(1.0, END)
-    if Front(log1, log2):
-        rt.quit()
+    try:
+        '''Подключаем mysql'''
+        mydb = mysql.connector.connect(
+            auth_plugin='mysql_native_password',
+            user=log1[:-1],
+            password=log2[:-1],
+        )
+        '''Создаём бд'''
+        mycursor = mydb.cursor()
+        all_dbfs = "all_in_one"
+        database = "CREATE DATABASE IF NOT EXISTS " + all_dbfs
+        mycursor.execute(database)
+
+        if Front(log1, log2):
+            rt.quit()
+
+    except mysql.connector.errors.ProgrammingError:
+        messagebox.showinfo("Нотификация", "Неправильные данные")
 
 
 rt = Tk()
