@@ -1,17 +1,19 @@
+# -*- coding: utf8 -*-
 from tkinter import *
 import pathmagic
 from tkinter import messagebox
 import mysql.connector
-
-with pathmagic.Context():
-    from Work.Scripts.front import Front
+import front
 
 
 def getText():
     log1 = text.get(1.0, END)
     log2 = text2.get(1.0, END)
     try:
-        '''Подключаем mysql'''
+        '''Подключаем mysql
+        Входные данные: -
+        Выходные данные: -
+        '''
         mydb = mysql.connector.connect(
             auth_plugin='mysql_native_password',
             user=log1[:-1],
@@ -23,7 +25,7 @@ def getText():
         database = "CREATE DATABASE IF NOT EXISTS " + all_dbfs
         mycursor.execute(database)
 
-        if Front(log1, log2):
+        if front.front(log1, log2):
             rt.quit()
 
     except mysql.connector.errors.ProgrammingError:
