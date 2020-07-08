@@ -6,6 +6,7 @@ import ssl
 import mysql.connector
 import os
 import pathlib
+import sys
 import csv
 import dbf
 try:
@@ -25,6 +26,7 @@ else:
 
 
 def dbf_to_csv(dbf_table_pth):  # Input a dbf, output a csv, same name, same path, except extension
+    """Сам перевод dbf в csv"""
     csv_fn = dbf_table_pth[:-4] + ".csv"  # Set the csv file name
     table = dbf.Table(dbf_table_pth, codepage='cp866')  # table variable is a DBF object
     with open(csv_fn, 'w', newline='', encoding='cp866') as f:  # create a csv file, fill it with dbf content
@@ -68,6 +70,7 @@ def dbf_to_csv(dbf_table_pth):  # Input a dbf, output a csv, same name, same pat
 
 
 def todb(url):
+    """Подготовка и проверка нуждаемости перевода dbf в базу данных"""
     global flag
     flag = False
     mydb = mysql.connector.connect(
@@ -96,12 +99,10 @@ def todb(url):
         mycursor.execute(sql)
         mydb.commit()
 
-        '''Открываю сайт, качаю в Rar.rar файлы'''
-        p = pathlib.Path('Graphics')
-        p = str(p.absolute())
-        p = p.replace("\\", "/")
-        p = p[:-16] + 'Data/Rar.rar'
-
+        """Открываю сайт, качаю в Rar.rar файлы"""
+        filename = sys.argv[0]
+        csv_p = filename.replace("\\", "/")
+        p = csv_p[:-18] + 'Data/Rar.rar'
         r = requests.get(r'https://www.cbr.ru' + url, allow_redirects=True)
         with open(p, 'wb') as f:
             f.write(r.content)
@@ -146,14 +147,14 @@ def todb(url):
 
 
 def prepare(log1, log2):
-    """constants"""
+    """Получение даты последней отчетности на сайте cbr и вызов функции todb"""
     global user
     global password
     cbr = ''
     user = log1[:-1]
     password = log2[:-1]
     #################
-    '''Получение ссылок'''
+    """Получение ссылок"""
     quote_page = 'https://www.cbr.ru/banking_sector/otchetnost-kreditnykh-organizaciy/'
     page = request.urlopen(quote_page)
     soup = BeautifulSoup(page, 'html.parser')
