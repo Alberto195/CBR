@@ -1,4 +1,5 @@
-from tkinter import Tk, ttk, messagebox
+# -*- coding: utf8 -*-
+from tkinter import ttk, messagebox
 from tkinter import *
 import mysql.connector
 import re
@@ -8,18 +9,18 @@ from openpyxl import Workbook
 import pathlib
 import os
 import pathmagic
-
-with pathmagic.Context():
-    from Work.Scripts.Backend import prepare
-
-matplotlib.use("TkAgg")
 import datetime
 from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk, FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import Backend
+
+matplotlib.use("TkAgg")
 
 
 ##########
-def Front(log1, log2):
+def front(log1, log2):
+    """Функция главной программмы"""
+
     def dates_listbox(listbox1, ):
         """ Формирование списка дат"""
         query = "select DATE from all_dt"
@@ -29,7 +30,7 @@ def Front(log1, log2):
             listbox1.insert(END, i)
         return listbox1
 
-    def dates_get(NB):
+    def dates_get(nb):
         """ Извлечение дат, вызывает функцию screening dates, которая обрабатывает полученные даты"""
         dates_mass = []
         clicked_items = listbox1.curselection()
@@ -42,45 +43,62 @@ def Front(log1, log2):
                 dr1 = str(listbox1.get(item))
                 datstr2 = dr1[2] + dr1[3] + dr1[4] + dr1[5] + dr1[7] + dr1[8]
                 dates_mass.append(datstr2)
-            screening(dates_mass, NB)
+            screening(dates_mass, nb)
         if invalid_data:
             messagebox.showinfo("Даты которых нет", invalid_data)
         valid_data.clear()
         invalid_data.clear()
 
-    def many_dates_before(YY, NB, h, head):
+    def many_dates_before(yy, nb, h, head):
         """ Заполняет таблицу старой отчетности для выбранного банка и выбранной даты"""
-        if YY[7] == '1':
+        if yy[7] == '1':
             itog = '.SIM_ITOGO'
         else:
             itog = '.itog'
-        query = "select sprav17.code," + YY + itog + \
-                " from " + YY + " join sprav17 on" \
-                                " " + YY + ".code = sprav17.code " \
-                                           "where " + YY + ".REGN = " + NB
+        query = "select sprav17.code," + yy + itog + \
+                " from " + yy + " join sprav17 on" \
+                                " " + yy + ".code = sprav17.code " \
+                                           "where " + yy + ".REGN = " + nb
         cur.execute(query)
         text52 = cur.fetchall()
         head_text = head[4:] + '/' + head[:4]
         tree.heading("#%s" % h, text="%s" % head_text, anchor=W)
+        for i in range(len(text52)):
+            for j in range(1, len(folderx1)):
+                if text52[i][0] == tree.item(folderx1[j])['values'][0]:
+                    tree.set("Glava%s" % j, "#%s" % h, "%s" % (text52[i][1]))
+        for i in range(len(text52)):
+            for j in range(1, len(folderx2)):
+                if text52[i][0] == tree.item(folderx2[j])['values'][0]:
+                    tree.set("ABC%s" % j, "#%s" % h, "%s" % (text52[i][1]))
+        for i in range(len(text52)):
+            for j in range(1, len(folderx3)):
+                if (text52[i][0] == tree.item(folderx3[j])['values'][0]):
+                    tree.set("Razd%s" % j, "#%s" % h, "%s" % (text52[i][1]))
+        for i in range(len(text52)):
+            for j in range(1, len(folderx4)):
+                if text52[i][0] == tree.item(folderx4[j])['values'][0]:
+                    tree.set("Nums%s" % j, "#%s" % h, "%s" % (text52[i][1]))
+        for i in range(len(text52)):
+            for j in range(1, len(folderx5)):
+                if text52[i][0] == tree.item(folderx5[j])['values'][0]:
+                    tree.set("Info%s" % j, "#%s" % h, "%s" % (text52[i][1]))
+        d1 = tree.item('Info261')['values'][h - 1]
+        tree.set("Razd16", "#%s" % h, "%s" % d1)
+        tree.set("Glava7", "#%s" % h, "%s" % d1)
+        d2 = tree.item('Info263')['values'][h - 1]
+        tree.set("Razd17", "#%s" % h, "%s" % d2)
+        d3 = tree.item('Info265')['values'][h - 1]
+        tree.set("Razd18", "#%s" % h, "%s" % d3)
+        tree.set("Glava5", "#%s" % h, "%s" % 0)
+        tree.set("Glava6", "#%s" % h, "%s" % 0)
 
-        def phor(folderx, phase):
-            for i in range(len(text52)):
-                for j in range(1, len(folderx)):
-                    if text52[i][0] == tree.item(folderx1[j])['values'][0]:
-                        tree.set(phase % j, "#%s" % h, "%s" % (text52[i][1]))
-
-        phor(folderx1, "Glava%s")
-        phor(folderx2, "ABC%s")
-        phor(folderx3, "Razd%s")
-        phor(folderx4, "Nums%s")
-        phor(folderx5, "Info%s")
-
-    def many_dates_after(YY, NB, h, head):
+    def many_dates_after(yy, nb, h, head):
         """ Заполняет таблицу новой отчетности для выбранного банка и выбранной даты"""
-        query = "select sprav2.code," + YY + ".SIM_ITOGO " \
-                                             "from " + YY + " join sprav2 on" \
-                                                            " " + YY + ".code = sprav2.code " \
-                                                                       "where " + YY + ".REGN = " + NB
+        query = "select sprav2.code," + yy + ".SIM_ITOGO " \
+                                             "from " + yy + " join sprav2 on" \
+                                                            " " + yy + ".code = sprav2.code " \
+                                                                       "where " + yy + ".REGN = " + nb
         cur.execute(query)
         text52 = cur.fetchall()
         head_text = head[4:] + '/' + head[:4]
@@ -106,7 +124,7 @@ def Front(log1, log2):
             # часть
             elif 0 < int(text52[u][0]) - 10000 < 5:
                 p1 += 1
-                tree.set("Part%s" % (p1), "#%s" % h, "%s" % (text52[u][1]))
+                tree.set("Part%s" % p1, "#%s" % h, "%s" % (text52[u][1]))
             # часть 6 и раздел
             elif int(text52[u][0]) == 61101:
                 tree.set("Part6", "#%s" % h, "%s" % (text52[u][1]))
@@ -144,6 +162,7 @@ def Front(log1, log2):
                     int(text52[u][0]) % 10000 != 9999 and int(text52[u][0]) != 1000 and \
                     int(text52[u][0]) != 2000 and int(text52[u][0]) != 3000 and \
                     int(text52[u][0]) != 4000:
+
                 i1 += 1
                 if i1 == 1773 or i1 == 1778:
                     i1 += 2
@@ -152,6 +171,15 @@ def Front(log1, log2):
                 if i1 == 1876:
                     i1 += 1
                 tree.set("Info%s" % i1, "#%s" % h, "%s" % (text52[u][1]))
+
+        tree.set("Part5", "#%s" % h, "%s" % 0)
+        tree.set("Section33", "#%s" % h, "%s" % 0)
+        tree.set("Num213", "#%s" % h, "%s" % 0)
+        tree.set("Num214", "#%s" % h, "%s" % 0)
+        d1 = tree.item("Section35")['values'][h - 1]
+        d2 = tree.item("Section36")['values'][h - 1]
+        d3 = int(d1) - int(d2)
+        tree.set("Part7", "#%s" % h, "%s" % d3)
 
     def screening(dm, nb):
         """ Обработка полученных дат. Строчка if> 201707 означает, что выбираем из новой отчетности
@@ -253,11 +281,12 @@ def Front(log1, log2):
     def banks_get():
         """ Извелечение банка"""
         e = combobox1.get()
-        # try:
+        print(e)
+        #try:
         num_bank = re.findall('(\d+)', e)[0]
         dates_get(num_bank)
-        # except:
-        #     messagebox.showinfo("Ошибка", "Выберите банк!")
+        #except:
+        #    messagebox.showinfo("Ошибка", "Выберите банк!")
 
     def NEW_TREE():
         """ Функция заполняет таблицу для новой отчетности(Первый столбец)"""
@@ -327,7 +356,7 @@ def Front(log1, log2):
 
     ########
     def OLD_TREE():
-        """ Функция заполняет таблицу для старой отчетности( Первый столбец)"""
+        """ Функция заполняет таблицу для старой отчетности(Первый столбец)"""
         global folderx1
         global folderx2
         global folderx3
@@ -455,12 +484,16 @@ def Front(log1, log2):
 
     #############
     def tree_to_csv():
-        FILENAME = 'csv3.csv'
-        with open(FILENAME, "w", newline='') as csv_file:
+        """Перевод значений в дереве в csv файл"""
+        filename = sys.path[0] + "\\main.py"
+        csv_p = filename.replace("\\", "/")
+        csv3p = csv_p[:-7] + "csv3.csv"
+        with open(csv3p, "w", newline='') as csv_file:
             write = csv.writer(csv_file, dialect='excel', delimiter=';')
             chld1 = tree.get_children()
 
             def datapar(chld):
+                """Переписание строк с дерева в строкои в csv"""
                 for i1 in range(len(chld)):
                     ######
                     i = 0
@@ -479,6 +512,7 @@ def Front(log1, log2):
                     recursiv(chld[i1])
 
             def recursiv(element):
+                """Рекурсия для получения всех строк с дерева"""
                 if tree.get_children(element) == ():
                     return 1
                 else:
@@ -490,37 +524,101 @@ def Front(log1, log2):
 
     #############
     def cvs2xl():
+        """Перевод csv файла в файл excel"""
         #########
-        wb = Workbook()
-        ws = wb.active
-        p = pathlib.Path('Graphics')
-        p = str(p.absolute())
-        p = p.replace("\\", "/")
-        i = 1
-        ########
-        with open('csv3.csv', 'r') as f:
-            for row in csv.reader(f, dialect='excel', delimiter=';'):
-                ws.append(row)
-                if 'Часть ' in row[0][0:6]:
-                    ws.row_dimensions[i].hidden = True
-                    ws.row_dimensions[i].outlineLevel = 1
-                elif 'Раздел' in row[0][0:6]:
-                    ws.row_dimensions[i].hidden = True
-                    ws.row_dimensions[i].outlineLevel = 2
-                elif '.' in row[0][1:2]:
-                    ws.row_dimensions[i].hidden = True
-                    ws.row_dimensions[i].outlineLevel = 3
-                else:
-                    ws.row_dimensions[i].hidden = True
-                    ws.row_dimensions[i].outlineLevel = 4
-                i += 1
-        wb.save(p[:-16] + 'Graphics/otchet.xlsx')
+        filename = sys.path[0] + "\\main.py"
+        csv_p = filename.replace("\\", "/")
+        csv3p = csv_p[:-7] + "csv3.csv"
+        e = combobox1.get()
+        if e:
+            wb = Workbook()
+            ws = wb.active
+            i = 1
+            ########
+            with open(csv3p, 'r') as f:
+                for row in csv.reader(f, dialect='excel', delimiter=';'):
+                    ws.append(row)
+                    if 'Часть ' in row[0][0:6]:
+                        ws.row_dimensions[i].hidden = True
+                        ws.row_dimensions[i].outlineLevel = 1
+                    elif 'Раздел' in row[0][0:6]:
+                        ws.row_dimensions[i].hidden = True
+                        ws.row_dimensions[i].outlineLevel = 2
+                    elif '.' in row[0][1:2]:
+                        ws.row_dimensions[i].hidden = True
+                        ws.row_dimensions[i].outlineLevel = 3
+                    else:
+                        ws.row_dimensions[i].hidden = True
+                        ws.row_dimensions[i].outlineLevel = 4
+                    i += 1
+            wb.save(csv3p[:-16] + 'Graphics/otchet.xlsx')
+        else:
+            """Вызываю функцию, что из дбф файлов берет значения всех банков"""
+            all_banks()
 
     def pre():
-        if prepare(log1, log2):
+        """Проверка отчётности данных, которая производится в Backend.py"""
+        if Backend.prepare(log1, log2):
             messagebox.showinfo("Нотификация", "База данных обновлена")
         else:
             messagebox.showinfo("Нотификация", "База данных не нуждается в обновлении")
+
+    def all_banks(dates_mass1):
+        filename = sys.path[0] + "\\main.py"
+        csv_p = filename.replace("\\", "/")
+        for name in dates_mass1:
+            # Параищоыикщпиыщшкп фигня с переводом дбф в цсв и путь найти
+            dbf_p = csv_p[:-15] + "Data/"+name+".dbf"
+            csv_path = Backend.dbf_to_csv(dbf_p)
+            wb = Workbook()
+            ws = wb.active
+            prev_row = 1
+            i = 1
+            ws.append(["rot"])
+            ########
+            with open(csv_path, 'r') as f:
+                for row in csv.reader(f, dialect='excel', delimiter=','):
+                    if row[0] != prev_row:
+                        ws = wb.create_sheet(str(row[0]))
+                        i = 1
+                        prev_row = row[0]
+                        ws.append(row)
+                    elif row[0] == prev_row:
+                        ws.append(row)
+                        ws.row_dimensions[i].hidden = False
+                    i += 1
+            wb.save(csv_p[:-15] + 'Graphics/'+ name +'.xlsx')
+
+    def dates_allbanks():
+        dates_mass1 = []  # массив с выбранными датами
+        clicked_items = listbox1.curselection()
+        if not clicked_items:
+            messagebox.showinfo("Ошибка выбора", "Выберите дату!")
+        elif len(clicked_items) > 10:
+            messagebox.showinfo("Ошибка выбора", "Вы выбрали слишком много дат!")
+        else:
+            for item in clicked_items:
+                dr1 = str(listbox1.get(item))
+                bd = dr1[2] + dr1[3] + dr1[4] + dr1[5] + dr1[7] + dr1[8]
+                ############
+                if bd[5] == "4":
+                    ds2 = '1' + bd[0] + bd[1] + bd[2] + bd[3]
+                elif bd[5] == "7":
+                    ds2 = '2' + bd[0] + bd[1] + bd[2] + bd[3]
+                elif bd[5] == "0":
+                    ds2 = '3' + bd[0] + bd[1] + bd[2] + bd[3]
+                elif bd[5] == "1":
+                    di = int(bd[2] + bd[3]) - 1
+                    if di > 9:
+                        di2 = str(di)
+                        ds2 = '4' + bd[0] + bd[1] + di2
+                    else:
+                        di2 = str(di)
+                        ds2 = '4' + bd[0:2] + '0' + di2
+                ds2 = ds2 + '_p1'
+                dates_mass1.append(ds2)
+            print(dates_mass1)
+            all_banks(dates_mass1)
 
     #############
     root = Tk()
@@ -551,10 +649,9 @@ def Front(log1, log2):
     #########
     NEW_TREE()  #
     ###########
-    start = pathlib.Path('')
-    start = str(start.absolute())
-    start = start.replace("\\", "/")
-    start = start[:-7] + 'Notes/'
+    filename = sys.path[0] + "\\main.py"
+    start = filename.replace("\\", "/")
+    start = start[:-15] + "Notes/"
     ###########
     '''Menu'''
     my_menu = Menu(root)
@@ -583,6 +680,9 @@ def Front(log1, log2):
     plotbutton.pack(side=TOP)
     excbutton = Button(frame, text="Выгрузить данные таблицы в excel", fg="green", width=34, command=tree_to_csv)
     excbutton.pack(side=TOP)
+    vsebankibutton = Button(frame, text="Выгрузить Все банки по выбранным датам", fg="red", width=34,
+                            command=dates_allbanks)
+    vsebankibutton.pack(side=TOP)
     frame1 = Frame(frame)
     frame1.pack(side=TOP)
     bttnafter = Button(frame1, text="Новая отчетность", relief="sunken", width=16, command=toggle1)
@@ -601,8 +701,6 @@ def Front(log1, log2):
     lab.place(x=0, y=100)
     listbox1 = Listbox(root, height=10, selectbackground="#708090", width=35, selectmode=MULTIPLE)
     listbox1.place(x=0, y=120)
-    # cur_mas = []
-    # cur_dat = [0] * 10
     tree.bind('<Button-1>', selectItem)
     ch_dates = [0] * 10
     ch_num = [0] * 10
@@ -615,4 +713,3 @@ def Front(log1, log2):
     toolbar = NavigationToolbar2Tk(canvas, root)
     toolbar.place(x=700, y=250)
     root.mainloop()
-
